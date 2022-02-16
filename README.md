@@ -1,13 +1,12 @@
-# ELG adapted API for HeLI OTS 1.3
+# ELG API for HeLI-OTS
 
-This git repository contains ELG adapted REST API 
-for the HeLI OTS 1.3 language identifier
-<https://metashare.csc.fi/repository/browse/heli-ots-13/e8d4e1fa8e4d11ec9719fa163ec5ae3e4d9e6602472b4b31810c6314644061bc/>, <https://zenodo.org/record/6077089#.Ygt7Sy0RphF>, 
-Apache licence 2.0, published Feb 15, 2022).
+This git repository contains [ELG compatible](https://european-language-grid.readthedocs.io/en/stable/all/A3_API/LTInternalAPI.html)  Flask based REST API for the HeLI-OTS language identifier.
 
-The language identifier implementation is a command-line program implemented 
-in Java. It is contained in a single file, HeLI.jar, and it is called as a 
-subprocess from the app.py (the ELG Flask app).
+[HeLI-OTS 1.3](https://zenodo.org/record/6077089) is the off-the-shelf language identifier with 
+language models for 200 languages. HeLI-OTS is written in Java, and published under Apache licence 2.0.
+Original authors are Tommi Jauhiainen and Heidi Jauhiainen from the University of Helsinki.
+
+This ELG API was developed in EU's CEF project: [Microservices at your service](https://www.lingsoft.fi/en/microservices-at-your-service-bridging-gap-between-nlp-research-and-industry)
 
 ## Local development
 
