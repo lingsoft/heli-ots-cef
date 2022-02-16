@@ -5,7 +5,7 @@ WORKDIR /app
 # Binutils for objcopy, needed by jlink.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends binutils wget tini && \
-    wget -q -O HeLI.jar https://zenodo.org/record/5890998/files/HeLI.jar?download=1
+    wget -q -O HeLI.jar https://zenodo.org/record/6077089/files/HeLI.jar?download=1
 RUN jdeps --print-module-deps HeLI.jar > java.modules
 RUN jlink --strip-debug  --add-modules $(cat java.modules) --output /java
 

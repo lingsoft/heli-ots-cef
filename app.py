@@ -2,7 +2,7 @@
 
 import os
 from elg import FlaskService
-from elg.model import Failure, TextsResponseObject, TextsResponse, TextRequest, AnnotationsResponse
+from elg.model import Failure, TextRequest, AnnotationsResponse
 from elg.model.base import StandardMessages
 
 
@@ -116,7 +116,7 @@ class LidHeli(FlaskService):
 							clf_obj["features"]["original_text"] = l
 						output.append(clf_obj)
 			try:
-				return AnnotationsResponse(annotations={"lid": output})
+				return AnnotationsResponse(annotations={"language_identification": output})
 			except Exception as e:
 				detail = {'server error': str(e)}
 				error = StandardMessages.generate_elg_service_internalerror(

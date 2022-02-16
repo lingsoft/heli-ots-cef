@@ -1,9 +1,9 @@
-# ELG adapted API for HeLI OTS 1.2
+# ELG adapted API for HeLI OTS 1.3
 
 This git repository contains ELG adapted REST API 
-for the HeLI OTS 1.1 language identifier 
-(<http://urn.fi/urn:nbn:fi:lb-2021062801>, <https://zenodo.org/record/5890998#.Ye6bGhtBydY>, 
-Apache licence 2.0, published Jan 22, 2022).
+for the HeLI OTS 1.3 language identifier
+<https://metashare.csc.fi/repository/browse/heli-ots-13/e8d4e1fa8e4d11ec9719fa163ec5ae3e4d9e6602472b4b31810c6314644061bc/>, <https://zenodo.org/record/6077089#.Ygt7Sy0RphF>, 
+Apache licence 2.0, published Feb 15, 2022).
 
 The language identifier implementation is a command-line program implemented 
 in Java. It is contained in a single file, HeLI.jar, and it is called as a 
@@ -13,7 +13,7 @@ subprocess from the app.py (the ELG Flask app).
 
 First download the java application and place in this project's root directory
 ```
-wget -q -O HeLI.jar https://zenodo.org/record/5890998/files/HeLI.jar?download=1
+wget -q -O HeLI.jar https://zenodo.org/record/6077089/files/HeLI.jar?download=1
 ```
 Run the development mode flask app
 
@@ -122,46 +122,56 @@ curl --location --request POST 'http://localhost:8001/process' \
 --data-raw '{
 "type":"text",
 "params":{"includeOrig": "True","languageSet":["fin","swe","eng"]},
-"content": "Suomi on kaunis maa\nGod morgon!\nThis is an English sentence"
+"content": "Suomi on kaunis maa\nGod morgon!\nThis is an English sentence\nBoris Johnson left London"
 }'
 ```
 
 ### Response should be
 
-```
+```json
 {
-  "response": {
-    "type": "annotations",
-    "annotations": {
-      "lid": [
+  "response":{
+    "type":"annotations",
+    "annotations":{
+      "lid":[
         {
-          "start": 0,
-          "end": 19,
-          "features": {
-            "lang3": "fin",
-            "lang2": "fi",
-            "confidence": 3.6296403,
-            "original_text": "Suomi on kaunis maa"
+          "start":0,
+          "end":19,
+          "features":{
+            "lang3":"fin",
+            "lang2":"fi",
+            "confidence":3.1119258,
+            "original_text":"Suomi on kaunis maa"
           }
         },
         {
-          "start": 20,
-          "end": 31,
-          "features": {
-            "lang3": "swe",
-            "lang2": "sv",
-            "confidence": 4.1419973,
-            "original_text": "God morgon!"
+          "start":20,
+          "end":31,
+          "features":{
+            "lang3":"swe",
+            "lang2":"sv",
+            "confidence":3.876974,
+            "original_text":"God morgon!"
           }
         },
         {
-          "start": 32,
-          "end": 59,
-          "features": {
-            "lang3": "eng",
-            "lang2": "en",
-            "confidence": 3.242215,
-            "original_text": "This is an English sentence"
+          "start":32,
+          "end":59,
+          "features":{
+            "lang3":"eng",
+            "lang2":"en",
+            "confidence":2.9322662,
+            "original_text":"This is an English sentence"
+          }
+        },
+        {
+          "start":60,
+          "end":85,
+          "features":{
+            "lang3":"eng",
+            "lang2":"en",
+            "confidence":4.581592,
+            "original_text":"Boris Johnson left London"
           }
         }
       ]
