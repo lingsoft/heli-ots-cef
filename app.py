@@ -10,6 +10,7 @@ from subprocess import Popen, PIPE
 import threading
 import unicodedata
 import re
+from collections import defaultdict
 
 import languagecodes
 
@@ -36,13 +37,12 @@ class LidHeli(FlaskService):
 				n_best_lang = params.get('bestLangs', 10)
 
 			texts = request.content
-			output = list()
+			output = defaultdict(list)
 			offset = 0
 			with lid_lock:
 				for id, l in enumerate(texts.split('\n')):
 						in_text = self.remove_control_characters(l.replace("\r", "").replace(
 								"\n", " ").replace("\t", " ").replace("\u2028", " ").replace("\u2029", " ")) + "\n"
-						#in_text = remove_control_characters(l.replace("\r","").replace("\n", " ").replace("\t", " ")) + "\n"
 						process.stdin.write(in_text.encode("utf-8"))
 						process.stdin.flush()
 						lang_list = []
@@ -70,7 +70,7 @@ class LidHeli(FlaskService):
 						lang2 = None
 						lang3 = None
 						conf = 0
-						# print('lang list', lang_list)
+						
 						if len(lang_list):
 								lang2 = lang_list[0]["lang2"]
 								lang3 = lang_list[0]["lang3"]
@@ -114,9 +114,10 @@ class LidHeli(FlaskService):
 
 						if orig:
 							clf_obj["features"]["original_text"] = l
-						output.append(clf_obj)
+
+						output[lang3].append(clf_obj)
 			try:
-				return AnnotationsResponse(annotations={"language_identification": output})
+				return AnnotationsResponse(annotations=output)
 			except Exception as e:
 				detail = {'server error': str(e)}
 				error = StandardMessages.generate_elg_service_internalerror(
@@ -140,7 +141,6 @@ inDev = os.getenv('FLASK_ENV')
 def setup():
 		global process
 		app.logger.info("before_first_request")
-		#process = Popen(['java', '-jar', 'HeLI.jar', '-c'], stdin=PIPE, stdout=PIPE)
 
 		if inDev:
 			if language_set:
@@ -157,6 +157,3 @@ def setup():
 					process = Popen(['/java/bin/java', '-XX:+UseG1GC', '-Xms2g', '-Xmx2g', '-jar', 'HeLI.jar', '-t',
 													str(n_best_lang)], stdin=PIPE, stdout=PIPE)
 
-
-# test request:
-# curl -d '{"type":"structuredText", "params": {"includeOrig":"True", "languageSet":["fin","swe","eng"]} ,"texts": [{"content":"Suomi on kaunis mää"}, {"content": "The President just came"}]}' -H "Content-Type: application/json" -X POST http://localhost:8000/process
