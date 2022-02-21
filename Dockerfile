@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends binutils wget tini && \
     wget -q -O HeLI.jar https://zenodo.org/record/6077089/files/HeLI.jar?download=1
 RUN jdeps --print-module-deps HeLI.jar > java.modules
-RUN jlink --strip-debug  --add-modules $(cat java.modules) --output /java
+RUN jlink --strip-debug  --add-modules "$(cat java.modules)" --output /java
 
 # https://testdriven.io/blog/docker-best-practices/
 FROM python:3.8-slim as venv-build
@@ -17,7 +17,7 @@ ENV PYTHONUNBUFFERED=1
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 FROM python:3.8-slim
 COPY --from=jre-build /usr/bin/tini /usr/bin/tini
