@@ -14,10 +14,23 @@ First download the java application and place in this project's root directory
 ```
 wget -q -O HeLI.jar https://zenodo.org/record/6077089/files/HeLI.jar?download=1
 ```
-Run the development mode flask app
 
+Setup virtualenv, dependencies
+```
+python3 -m venv heli-venv
+source heli-venv/bin/activate
+python3 -m pip install -r requirements.txt
+```
+
+Run the development mode flask app
 ```
 FLASK_ENV=development flask run --host 0.0.0.0 --port 8000
+```
+
+## Run tests for a running app
+
+```
+python3 -m unittest -v
 ```
 
 ## Building the docker image
@@ -25,6 +38,8 @@ FLASK_ENV=development flask run --host 0.0.0.0 --port 8000
 ```
 docker build -t heli-elg .
 ```
+
+Or pull directly ready-made image `docker pull lingsoft/heli-ots:tagname`.
 
 ## Deploying the service
 
@@ -58,7 +73,6 @@ Content-type : application/json
   "type":"text",
   "params":{...},   /* optional */ 
   "content": concatenated string of sentences, separated by newline `\n`
-
 }
 
 ```
@@ -72,20 +86,29 @@ The `content` property contains a concatenated string by newline of language sen
   "response":{
     "type":"annotations",
     "annotations":{
-      "lid":[
+      "<lang3 code>":[ // list of sentences that are identified with <lang3 code>
+        { // first sentence that is identifed with <lang3 code>
+          "start":number,
+          "end":number,
+          "features":{ "lang3": str, "lang2: str, "confidence": float }
+        },
+        { // second sentence that is identifed with <lang3 code>
+          "start":number,
+          "end":number,
+          "features":{ "lang3": str, "lang2: str, "confidence": float }
+        },
+      ],
+      "<another lang3 code>":[ // list of sentences that are identified with another <lang3 code>
         {
           "start":number,
           "end":number,
           "features":{ "lang3": str, "lang2: str, "confidence": float }
         }
-      ]
+      ],
     }
   }
 }
 ```
-
-The items in the `lid` list are at corresponding positions to the input 
-of concatenated string in the `content`property of send request. 
 
 ### Response structure
 
@@ -116,13 +139,7 @@ of concatenated string in the `content`property of send request.
 ### Example call
 
 ```
-curl --location --request POST 'http://localhost:8001/process' \
---header 'Content-Type: application/json' \
---data-raw '{
-"type":"text",
-"params":{"includeOrig": "True","languageSet":["fin","swe","eng"]},
-"content": "Suomi on kaunis maa\nGod morgon!\nThis is an English sentence\nBoris Johnson left London"
-}'
+curl -H "Content-Type: application/json" -d @text-request.json http://localhost:8000/process
 ```
 
 ### Response should be
@@ -132,45 +149,79 @@ curl --location --request POST 'http://localhost:8001/process' \
   "response":{
     "type":"annotations",
     "annotations":{
-      "lid":[
+      "fin":[
         {
           "start":0,
           "end":19,
           "features":{
             "lang3":"fin",
             "lang2":"fi",
-            "confidence":3.1119258,
+            "confidence":3.1124437,
             "original_text":"Suomi on kaunis maa"
           }
         },
         {
           "start":20,
-          "end":31,
+          "end":43,
           "features":{
-            "lang3":"swe",
-            "lang2":"sv",
-            "confidence":3.876974,
-            "original_text":"God morgon!"
+            "lang3":"fin",
+            "lang2":"fi",
+            "confidence":3.351351,
+            "original_text":"Mitä tänään syötäisiin?"
           }
         },
         {
-          "start":32,
-          "end":59,
+          "start":145,
+          "end":181,
+          "features":{
+            "lang3":"fin",
+            "lang2":"fi",
+            "confidence":3.5109267,
+            "original_text":"Olen asunnut Suomessa noin 10 vuotta"
+          }
+        }
+      ],
+      "swe":[
+        {
+          "start":44,
+          "end":55,
+          "features":{
+            "lang3":"swe",
+            "lang2":"sv",
+            "confidence":3.8769577,
+            "original_text":"God morgon!"
+          }
+        }
+      ],
+      "eng":[
+        {
+          "start":56,
+          "end":83,
           "features":{
             "lang3":"eng",
             "lang2":"en",
-            "confidence":2.9322662,
+            "confidence":2.9322097,
             "original_text":"This is an English sentence"
           }
         },
         {
-          "start":60,
-          "end":85,
+          "start":84,
+          "end":109,
           "features":{
             "lang3":"eng",
             "lang2":"en",
-            "confidence":4.581592,
+            "confidence":4.5815454,
             "original_text":"Boris Johnson left London"
+          }
+        },
+        {
+          "start":110,
+          "end":144,
+          "features":{
+            "lang3":"eng",
+            "lang2":"en",
+            "confidence":2.883938,
+            "original_text":"This is second sentence in English"
           }
         }
       ]
