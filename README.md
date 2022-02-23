@@ -47,83 +47,26 @@ Or pull directly ready-made image `docker pull lingsoft/heli-ots:tagname`.
 docker run -d -p <port>:8000 --init --memory="4g" --restart always heli-elg
 ```
 
-## REST API
-
-### Call pattern
-
-#### URL
+## Example call
 
 ```
-http://<host>:<port>/process
+curl -H "Content-Type: application/json" -d @text-request.json http://localhost:8000/process
 ```
 
-Replace `<host>` and `<port>` with the host name and port where the 
-service is running.
+### Text request
 
-#### HEADERS
-
-```
-Content-type : application/json
-```
-
-#### BODY
-
-```
+```json
 {
   "type":"text",
-  "params":{...},   /* optional */ 
-  "content": concatenated string of sentences, separated by newline `\n`
-}
-
-```
-
-The `content` property contains a concatenated string by newline of language sentences to be identified. If blank string is given, API always return Finnish as default identified language.
-
-#### RESPONSE
-
-```
-{
-  "response":{
-    "type":"annotations",
-    "annotations":{
-      "<lang3 code>":[ // list of sentences that are identified with <lang3 code>
-        { // first sentence that is identifed with <lang3 code>
-          "start":number,
-          "end":number,
-          "features":{ "lang3": str, "lang2: str, "confidence": float }
-        },
-        { // second sentence that is identifed with <lang3 code>
-          "start":number,
-          "end":number,
-          "features":{ "lang3": str, "lang2: str, "confidence": float }
-        },
-      ],
-      "<another lang3 code>":[ // list of sentences that are identified with another <lang3 code>
-        {
-          "start":number,
-          "end":number,
-          "features":{ "lang3": str, "lang2: str, "confidence": float }
-        }
-      ],
-    }
-  }
+  "params":{"includeOrig": "True","languageSet":["fin","swe","eng"]},
+  "content": "Suomi on kaunis maa\nMitä tänään syötäisiin?\nGod morgon!\nThis is an English sentence\nBoris Johnson left London\nThis is second sentence in English\nOlen asunnut Suomessa noin 10 vuotta"
 }
 ```
 
-### Response structure
+The `content` property contains a concatenated string by newline of language sentences to be identified. 
+If blank string is given, API always return Finnish as default identified language.
 
-- `start` and `end` (int)
-  - the indices of the sentences in send request
-- `lang3` (str)
-  - ISO 639-3 code of the language
-- `lang2` (str)
-  - ISO 639-2 code of the language if available, otherwise null
-- `confidence` (float)
-  - confidence score of the language, log likelihood probability.
-- `original_text` (optional, str)
-  - optional original text
-
-### Optional paremeters to add to body at top level
+Optional paremeters to add to body at top level
 
 - `includeOrig` (bool, default=false)
   - true  : include original texts in the response structure
@@ -136,13 +79,18 @@ The `content` property contains a concatenated string by newline of language sen
   - A dictionary object, that maps 2-letter language codes given by the identifier to other 2-letter language codes
   - Example: `{ "ms":"id" }`
 
-### Example call
-
-```
-curl -H "Content-Type: application/json" -d @text-request.json http://localhost:8000/process
-```
-
 ### Response should be
+
+- `start` and `end` (int)
+  - the indices of the sentences in send request
+- `lang3` (str)
+  - ISO 639-3 code of the language
+- `lang2` (str)
+  - ISO 639-2 code of the language if available, otherwise null
+- `confidence` (float)
+  - confidence score of the language, log likelihood probability.
+- `original_text` (optional, str)
+  - optional original text
 
 ```json
 {
