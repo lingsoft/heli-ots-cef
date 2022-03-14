@@ -132,9 +132,8 @@ class LidHeli(FlaskService):
         try:
             return AnnotationsResponse(annotations=output)
         except Exception as e:
-            detail = {"server error": str(e)}
             error = StandardMessages.generate_elg_service_internalerror(
-                detail=detail)
+                params=[str(e)])
             return Failure(errors=[error])
 
 
