@@ -31,6 +31,18 @@ class LidHeli(FlaskService):
         if params:
             orig = params.get("includeOrig", False)
             language_set = params.get("languageSet", None)
+            # Sometime incorrect language codes were given,
+            # filter only valid ones
+            # if all language are invalid, set None.
+            if language_set:
+                if isinstance(language_set, str):
+                    language_set = [language_set]
+                language_set = [
+                    lang for lang in language_set
+                    if lang in languagecodes.ISO3_ALL
+                ]
+                if len(language_set) == 0:
+                    language_set = None
             langmap = params.get("languageMap", None)
             n_best_lang = params.get("bestLangs", 10)
 
