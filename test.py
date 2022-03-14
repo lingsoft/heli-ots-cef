@@ -1,13 +1,14 @@
 import unittest
 import json
 import requests
+import languagecodes
 
 
 class TestResponseStucture(unittest.TestCase):
-    base_url = 'http://localhost:8001/process'
+    base_url = 'http://localhost:8000/process'
 
     texts = 'Suomi on kaunis maa\nMitä tänään syötäisiin?\
-            \nGod morgon!\nThis is an'\
+            \nTyvärr, jag kan inte engelska!\nThis is an'\
             ' English sentence\nBoris Johnson left London\
             \nThis is second sentence in'\
             ' English\nOlen asunnut Suomessa noin 10 vuotta'
@@ -71,6 +72,38 @@ class TestResponseStucture(unittest.TestCase):
             self.assertEqual(
                 result['end'],
                 result['start'] + len(result['features']['original_text']))
+
+    def test_api_response_invalid_or_missing_languageset(self):
+        """Even though wrong languageset parameter are given,
+        Annotation response of each sentence should
+        return correct language codes: for example for Finnish sentences,
+        fin for lang3, and fi for lang2.
+        """
+        expected_langs = (('fin', 'fi'), ('swe', 'sv'), ('eng', 'en'))
+
+        # make invalid languagetset
+        local_params = {k: v for k, v in self.params.items()}
+        local_params['languageSet'] = ['invalid'] * len(expected_langs)
+        # local_params['languageSet'] = ['swe', 'invalid', 'vi']
+        local_payload = json.dumps({
+            "type": "text",
+            "params": local_params,
+            "content": self.texts
+        })
+
+        response = requests.post(self.base_url,
+                                 headers=self.headers,
+                                 data=local_payload).json()['response']
+        results = {}
+        # print(response)
+        for lang3, lang2 in expected_langs:
+            results[lang3] = response['annotations'][lang3]
+
+        for l3, res_obj in results.items():
+            for res in res_obj:
+                self.assertEqual(res['features']['lang3'], l3)
+                self.assertEqual(res['features']['lang2'],
+                                 languagecodes.iso_639_alpha2(l3))
 
 
 if __name__ == '__main__':
