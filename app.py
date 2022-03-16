@@ -1,7 +1,8 @@
 import os
+
 from elg import FlaskService
 from elg.model import Failure, TextRequest, AnnotationsResponse
-from elg.model.base import StandardMessages
+from elg.model.base import StandardMessages, StatusMessage
 
 from subprocess import Popen, PIPE
 import threading
@@ -26,7 +27,7 @@ class LidHeli(FlaskService):
 
         global language_set, n_best_lang
         # handle some params
-        langmap, orig = None, None
+        orig, warning_msg = None, None
         params = request.params
         if params:
             orig = params.get("includeOrig", False)
@@ -35,16 +36,65 @@ class LidHeli(FlaskService):
             # filter only valid ones
             # if all language are invalid, set None.
             if language_set:
-                if isinstance(language_set, str):
-                    language_set = [language_set]
-                language_set = [
+                if not isinstance(language_set, list):
+                    invalid_param_msg = 'LanguageSet parameter requires list type'
+                    error = StandardMessages.\
+                        generate_elg_service_internalerror(
+                            params=[invalid_param_msg])
+                    return Failure(errors=[error])
+
+                invalid_lang_codes = [
                     lang for lang in language_set
-                    if lang in languagecodes.ISO3_ALL
+                    if not languagecodes.iso_639_alpha3(lang)
                 ]
-                if len(language_set) == 0:
+
+                if len(invalid_lang_codes) == 0:
+                    language_set = [
+                        languagecodes.iso_639_alpha3(lang)
+                        for lang in language_set
+                    ]
+                elif len(invalid_lang_codes) > 0 and len(
+                        invalid_lang_codes) < len(language_set):
+                    warning_params = [
+                        f'These are invalid language codes given in the requests: {invalid_lang_codes}'
+                    ]
+                    warning_msg = StatusMessage(
+                        code=
+                        'elg.request.parameter.languageSet.partial.values.invalid',
+                        params=warning_params,
+                        text='There are some invalid language codes given')
+                    language_set = [
+                        languagecodes.iso_639_alpha3(lang)
+                        for lang in language_set
+                        if languagecodes.iso_639_alpha3(lang)
+                    ]
+
+                elif len(invalid_lang_codes) == len(language_set):
+                    warning_params = [
+                        'All submitted language codes are invalid'
+                    ]
+                    warning_msg = StatusMessage(
+                        code=
+                        'elg.request.parameter.languageSet.all.values.invalid',
+                        params=warning_params,
+                        text=
+                        'All language codes given are invalid, return results as there is no languageSet parameter'
+                    )
                     language_set = None
-            langmap = params.get("languageMap", None)
+
             n_best_lang = params.get("bestLangs", 10)
+            try:
+                n_best_lang = int(n_best_lang)
+            except ValueError:
+                invalid_type_msg = 'Parameter bestLangs is not a number'
+                error = StandardMessages.generate_elg_service_internalerror(
+                    params=[invalid_type_msg])
+                return Failure(errors=[error])
+            if n_best_lang < 1:
+                err_msg = 'Paramter bestLangs should be greater than 0'
+                error = StandardMessages.generate_elg_service_internalerror(
+                    params=[err_msg])
+                return Failure(errors=[error])
 
         texts = request.content
         output = defaultdict(list)
@@ -70,12 +120,6 @@ class LidHeli(FlaskService):
                             for l3 in langs:
                                 l2 = languagecodes.iso_639_alpha2(l3)
 
-                                if langmap:
-                                    if l2 in langmap and isinstance(
-                                            langmap[l2], str):
-                                        l2 = langmap[l2]
-                                        l3 = languagecodes.iso_639_alpha3(l2)
-
                                 lang_list.append({
                                     "lang2": l2,
                                     "lang3": l3,
@@ -83,7 +127,6 @@ class LidHeli(FlaskService):
                                 })
                     else:  # end of output
                         break
-
                 lang2 = None
                 lang3 = None
                 conf = 0
@@ -100,7 +143,7 @@ class LidHeli(FlaskService):
                     # default to first language in language_set:
                     if len(language_set):
                         lang3 = language_set[0]
-                        lang2 = languagecodes.iso_639_alpha3(lang3)
+                        lang2 = languagecodes.iso_639_alpha2(lang3)
 
                         # pick the best returned language
                         #  that is in language_set:
@@ -142,7 +185,12 @@ class LidHeli(FlaskService):
 
                 output[lang3].append(clf_obj)
         try:
-            return AnnotationsResponse(annotations=output)
+            if warning_msg:
+                return AnnotationsResponse(annotations=output,
+                                           warnings=[warning_msg])
+            else:
+                return AnnotationsResponse(annotations=output)
+
         except Exception as e:
             error = StandardMessages.generate_elg_service_internalerror(
                 params=[str(e)])
@@ -164,6 +212,9 @@ inDev = os.getenv("FLASK_ENV")
 @app.before_first_request
 def setup():
     global process
+    global language_set
+    global n_best_lang
+
     app.logger.info("before_first_request")
 
     if inDev:

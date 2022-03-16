@@ -2,6 +2,7 @@ import unittest
 import json
 import requests
 import languagecodes
+from elg.model.base import StatusMessage
 
 
 class TestResponseStucture(unittest.TestCase):
@@ -74,10 +75,9 @@ class TestResponseStucture(unittest.TestCase):
                 result['start'] + len(result['features']['original_text']))
 
     def test_api_response_invalid_or_missing_languageset(self):
-        """Even though wrong languageset parameter are given,
-        Annotation response of each sentence should
-        return correct language codes: for example for Finnish sentences,
-        fin for lang3, and fi for lang2.
+        """All invaid language codes given in languageSet parameters,
+        service should return results same as when there is no languageSet parameter.
+        Also, warning should be included in the results
         """
         expected_langs = (('fin', 'fi'), ('swe', 'sv'), ('eng', 'en'))
 
@@ -94,6 +94,7 @@ class TestResponseStucture(unittest.TestCase):
         response = requests.post(self.base_url,
                                  headers=self.headers,
                                  data=local_payload).json()['response']
+        print(response)
         results = {}
         # print(response)
         for lang3, lang2 in expected_langs:
@@ -104,6 +105,52 @@ class TestResponseStucture(unittest.TestCase):
                 self.assertEqual(res['features']['lang3'], l3)
                 self.assertEqual(res['features']['lang2'],
                                  languagecodes.iso_639_alpha2(l3))
+
+        self.assertIn('warnings', response)
+        self.assertIsInstance(response['warnings'], list)
+        for prop in ['text', 'params', 'code']:
+            self.assertIn(prop, response['warnings'][0])
+
+    def test_api_response_invalid_or_missing_languageset(self):
+        """Partial invalid language codes given in languageSet parameters,
+        service should return results according to those language codes that are valid,
+        Also, warning about invalid language codes should be included in the results
+        """
+        expected_langs = (('fin', 'fi'), ('swe', 'sv'), ('eng', 'en'))
+
+        # make invalid languagetset
+        local_params = {k: v for k, v in self.params.items()}
+        local_params['languageSet'] = self.params['languageSet'] + [
+            'invalid1'
+        ] + ['invalid2']
+        print(local_params)
+        # local_params['languageSet'] = ['swe', 'invalid', 'vi']
+        local_payload = json.dumps({
+            "type": "text",
+            "params": local_params,
+            "content": self.texts
+        })
+
+        response = requests.post(self.base_url,
+                                 headers=self.headers,
+                                 data=local_payload).json()['response']
+        print(response)
+        results = {}
+        for lang3, lang2 in expected_langs:
+            results[lang3] = response['annotations'][lang3]
+
+        for l3, res_obj in results.items():
+            for res in res_obj:
+                self.assertEqual(res['features']['lang3'], l3)
+                self.assertEqual(res['features']['lang2'],
+                                 languagecodes.iso_639_alpha2(l3))
+
+        self.assertIn('warnings', response)
+        self.assertIn('invalid1', response['warnings'][0]['params'][0])
+        self.assertIn('invalid2', response['warnings'][0]['params'][0])
+        self.assertIsInstance(response['warnings'], list)
+        for prop in ['text', 'params', 'code']:
+            self.assertIn(prop, response['warnings'][0])
 
 
 if __name__ == '__main__':

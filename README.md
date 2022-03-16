@@ -74,10 +74,8 @@ Optional paremeters to add to body at top level
 - `bestLangs` (int, default=10)
 	- The number of top-scored languages
 - `languageSet` (list, optional)
-  - A list of 3-letter language codes to filter. If given, the identifier will only output the languages in the list.
-- `languageMap` (dict, optional)
-  - A dictionary object, that maps 2-letter language codes given by the identifier to other 2-letter language codes
-  - Example: `{ "ms":"id" }`
+  - A list of 3-letter or 2-letter language codes to filter. If given, the identifier will only output the languages in the list.
+
 
 ### Response should be
 
@@ -86,9 +84,10 @@ Optional paremeters to add to body at top level
 - `lang3` (str)
   - ISO 639-3 code of the language
 - `lang2` (str)
-  - ISO 639-2 code of the language if available, otherwise null
+  - ISO 639-1 code of the language if available, otherwise null
 - `confidence` (float)
-  - confidence score of the language, log likelihood probability.
+  - calculated as the difference of log-probabilities of the two top-scoring languages
+  - may be zero when the `languageSet` parameter is used and the identified language is not in `languageSet`, or when `languageSet` consists of only one language.
 - `original_text` (optional, str)
   - optional original text
 
@@ -170,6 +169,78 @@ Optional paremeters to add to body at top level
             "lang2":"en",
             "confidence":2.883938,
             "original_text":"This is second sentence in English"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+## Notes
+- If invalid type of parameters `bestLangs` and `languageSet` are given, the service returns ELG failure response. For example, if there is negative value for `bestLangs`, response would be
+
+```json
+{
+  "failure": {
+    "errors": [
+      {
+        "code": "elg.service.internalError",
+        "params": [
+          "Paramter bestLangs should be greater than 0"
+        ],
+        "text": "Internal error during processing: {0}",
+        "detail": {}
+      }
+    ]
+  }
+}
+```
+
+- If there are partial or full invalid language codes given in `languageSet`, they are included in warnings property of the response. For example
+
+Call:
+
+```shell
+curl -H "Content-Type: application/json" -d @text-request-invalid.json http://localhost:8000/process
+```
+Response:
+
+```json
+{
+  "response": {
+    "type": "annotations",
+    "warnings": [
+      {
+        "code": "elg.request.parameter.languageSet.partial.values.invalid",
+        "params": [
+          "These are invalid language codes given in the requests: ['invalid']"
+        ],
+        "text": "There are some invalid language codes given"
+      }
+    ],
+    "annotations": {
+      "eng": [
+        {
+          "start": 0,
+          "end": 29,
+          "features": {
+            "lang3": "eng",
+            "lang2": "en",
+            "confidence": 2.5944998,
+            "original_text": "This is a sentence in English"
+          }
+        }
+      ],
+      "fin": [
+        {
+          "start": 30,
+          "end": 66,
+          "features": {
+            "lang3": "fin",
+            "lang2": "fi",
+            "confidence": 3.5109267,
+            "original_text": "Olen asunnut Suomessa noin 10 vuotta"
           }
         }
       ]

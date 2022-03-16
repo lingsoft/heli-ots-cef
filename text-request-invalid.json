@@ -1,0 +1,14 @@
+{
+  "type": "text",
+  "params": {
+    "includeOrig": "True",
+    "bestLangs": 10,
+    "languageSet": [
+      "fin",
+      "sv",
+      "eng",
+      "invalid"
+    ]
+  },
+  "content": "This is a sentence in English\nOlen asunnut Suomessa noin 10 vuotta"
+}
