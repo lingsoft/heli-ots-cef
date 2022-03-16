@@ -25,7 +25,7 @@ class LidHeli(FlaskService):
 
     def process_text(self, request: TextRequest):
 
-        global language_set, n_best_lang
+        global language_set
         # handle some params
         orig, warning_msg = None, None
         params = request.params
@@ -81,20 +81,6 @@ class LidHeli(FlaskService):
                         'All language codes given are invalid, return results as there is no languageSet parameter'
                     )
                     language_set = None
-
-            n_best_lang = params.get("bestLangs", 10)
-            try:
-                n_best_lang = int(n_best_lang)
-            except ValueError:
-                invalid_type_msg = 'Parameter bestLangs is not a number'
-                error = StandardMessages.generate_elg_service_internalerror(
-                    params=[invalid_type_msg])
-                return Failure(errors=[error])
-            if n_best_lang < 1:
-                err_msg = 'Paramter bestLangs should be greater than 0'
-                error = StandardMessages.generate_elg_service_internalerror(
-                    params=[err_msg])
-                return Failure(errors=[error])
 
         texts = request.content
         output = defaultdict(list)

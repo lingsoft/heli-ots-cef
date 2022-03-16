@@ -71,8 +71,6 @@ Optional paremeters to add to body at top level
 - `includeOrig` (bool, default=false)
   - true  : include original texts in the response structure
   - false : do not include original text
-- `bestLangs` (int, default=10)
-	- The number of top-scored languages
 - `languageSet` (list, optional)
   - A list of 3-letter or 2-letter language codes to filter. If given, the identifier will only output the languages in the list.
 
@@ -178,25 +176,6 @@ Optional paremeters to add to body at top level
 ```
 
 ## Notes
-- If invalid type of parameters `bestLangs` and `languageSet` are given, the service returns ELG failure response. For example, if there is negative value for `bestLangs`, response would be
-
-```json
-{
-  "failure": {
-    "errors": [
-      {
-        "code": "elg.service.internalError",
-        "params": [
-          "Paramter bestLangs should be greater than 0"
-        ],
-        "text": "Internal error during processing: {0}",
-        "detail": {}
-      }
-    ]
-  }
-}
-```
-
 - If there are partial or full invalid language codes given in `languageSet`, they are included in warnings property of the response. For example
 
 Call:
