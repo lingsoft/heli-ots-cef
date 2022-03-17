@@ -58,7 +58,7 @@ curl -H "Content-Type: application/json" -d @text-request.json http://localhost:
 ```json
 {
   "type":"text",
-  "params":{"includeOrig": "True","languageSet":["fin","swe","eng"]},
+  "params":{"includeOrig": true, "languageSet":["fin","swe","eng"]},
   "content": "Suomi on kaunis maa\nMitä tänään syötäisiin?\nGod morgon!\nThis is an English sentence\nBoris Johnson left London\nThis is second sentence in English\nOlen asunnut Suomessa noin 10 vuotta"
 }
 ```

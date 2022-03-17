@@ -14,7 +14,7 @@ class TestResponseStucture(unittest.TestCase):
             \nThis is second sentence in'\
             ' English\nOlen asunnut Suomessa noin 10 vuotta'
 
-    params = {"includeOrig": "True", "languageSet": ["fin", "swe", "eng"]}
+    params = {"includeOrig": True, "languageSet": ["fin", "swe", "eng"]}
 
     payload = json.dumps({"type": "text", "params": params, "content": texts})
 
@@ -94,9 +94,7 @@ class TestResponseStucture(unittest.TestCase):
         response = requests.post(self.base_url,
                                  headers=self.headers,
                                  data=local_payload).json()['response']
-        print(response)
         results = {}
-        # print(response)
         for lang3, lang2 in expected_langs:
             results[lang3] = response['annotations'][lang3]
 
@@ -123,7 +121,6 @@ class TestResponseStucture(unittest.TestCase):
         local_params['languageSet'] = self.params['languageSet'] + [
             'invalid1'
         ] + ['invalid2']
-        print(local_params)
         # local_params['languageSet'] = ['swe', 'invalid', 'vi']
         local_payload = json.dumps({
             "type": "text",
@@ -134,7 +131,6 @@ class TestResponseStucture(unittest.TestCase):
         response = requests.post(self.base_url,
                                  headers=self.headers,
                                  data=local_payload).json()['response']
-        print(response)
         results = {}
         for lang3, lang2 in expected_langs:
             results[lang3] = response['annotations'][lang3]
@@ -151,6 +147,24 @@ class TestResponseStucture(unittest.TestCase):
         self.assertIsInstance(response['warnings'], list)
         for prop in ['text', 'params', 'code']:
             self.assertIn(prop, response['warnings'][0])
+
+    def test_api_request_invalid_parameter_includeOrig(self):
+        """Invalid type of parameter includeOrig (not boolean) should return
+        failure response"""
+
+        # make invalid languagetset
+        local_params = {k: v for k, v in self.params.items()}
+        local_params['includeOrig'] = 'True'
+        # local_params['languageSet'] = ['swe', 'invalid', 'vi']
+        local_payload = json.dumps({
+            "type": "text",
+            "params": local_params,
+            "content": self.texts
+        })
+        response = requests.post(self.base_url,
+                                 headers=self.headers,
+                                 data=local_payload).json()
+        self.assertIn('failure', response)
 
 
 if __name__ == '__main__':

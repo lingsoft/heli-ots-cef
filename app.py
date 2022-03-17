@@ -31,6 +31,13 @@ class LidHeli(FlaskService):
         params = request.params
         if params:
             orig = params.get("includeOrig", False)
+            if not isinstance(orig, bool):
+                invalid_param_msg = 'includeOrig parameter requires boolean type'
+                error = StandardMessages.\
+                    generate_elg_service_internalerror(
+                        params=[invalid_param_msg])
+                return Failure(errors=[error])
+
             language_set = params.get("languageSet", None)
             # Sometime incorrect language codes were given,
             # filter only valid ones

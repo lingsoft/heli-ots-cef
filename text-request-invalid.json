@@ -1,7 +1,7 @@
 {
   "type": "text",
   "params": {
-    "includeOrig": "True",
+    "includeOrig": "false",
     "bestLangs": 10,
     "languageSet": [
       "fin",

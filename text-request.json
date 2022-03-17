@@ -1,7 +1,7 @@
 {
   "type": "text",
   "params": {
-    "includeOrig": "True",
+    "includeOrig": true,
     "languageSet": [
       "fin",
       "swe",
