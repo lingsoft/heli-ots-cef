@@ -62,14 +62,12 @@ class LidHeli(FlaskService):
                     ]
                 elif len(invalid_lang_codes) > 0 and len(
                         invalid_lang_codes) < len(language_set):
-                    warning_params = [
-                        f'These are invalid language codes given in the requests: {invalid_lang_codes}'
-                    ]
+                    warning_params = ','.join(invalid_lang_codes)
                     warning_msg = StatusMessage(
                         code=
                         'elg.request.parameter.languageSet.partial.values.invalid',
-                        params=warning_params,
-                        text='There are some invalid language codes given')
+                        params=[warning_params],
+                        text='There are some invalid language codes: {0}')
                     language_set = [
                         languagecodes.iso_639_alpha3(lang)
                         for lang in language_set
@@ -77,16 +75,13 @@ class LidHeli(FlaskService):
                     ]
 
                 elif len(invalid_lang_codes) == len(language_set):
-                    warning_params = [
-                        'All submitted language codes are invalid'
-                    ]
+                    warning_params = ','.join(invalid_lang_codes)
                     warning_msg = StatusMessage(
                         code=
                         'elg.request.parameter.languageSet.all.values.invalid',
-                        params=warning_params,
-                        text=
-                        'All language codes given are invalid, return results as there is no languageSet parameter'
-                    )
+                        params=[warning_params],
+                        text='All language codes given are invalid: {0}')
+
                     language_set = None
 
         texts = request.content

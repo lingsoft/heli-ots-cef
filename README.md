@@ -193,9 +193,9 @@ Response:
       {
         "code": "elg.request.parameter.languageSet.partial.values.invalid",
         "params": [
-          "These are invalid language codes given in the requests: ['invalid']"
+          "invalid,wrong"
         ],
-        "text": "There are some invalid language codes given"
+        "text": "There are some invalid language codes: {0}"
       }
     ],
     "annotations": {
