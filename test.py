@@ -147,6 +147,10 @@ class TestResponseStucture(unittest.TestCase):
         self.assertIsInstance(response['warnings'], list)
         for prop in ['text', 'params', 'code']:
             self.assertIn(prop, response['warnings'][0])
+            if prop != 'params':
+                self.assertIsInstance(response['warnings'][0][prop], str)
+            else:
+                self.assertIsInstance(response['warnings'][0][prop], list)
 
     def test_api_request_invalid_parameter_includeOrig(self):
         """Invalid type of parameter includeOrig (not boolean) should return
