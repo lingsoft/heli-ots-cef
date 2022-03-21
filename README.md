@@ -191,7 +191,7 @@ Response:
     "type": "annotations",
     "warnings": [
       {
-        "code": "elg.request.parameter.languageSet.partial.values.invalid",
+        "code": "elg.request.parameter.invalid",
         "params": [
           "invalid,wrong"
         ],
